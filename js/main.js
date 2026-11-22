@@ -261,6 +261,13 @@ const renderDailyMenu = (courses) => {
 
 // Renders the weekly menu for a restaurant
 const renderWeeklyMenu = (days) => {
+  console.table(
+    days.map((day) => ({
+      apiDate: day.date,
+      parsedDate: parseApiDate(day.date).toLocaleDateString("fi-FI"),
+      courses: day.courses?.length ?? 0,
+    })),
+  );
   elements.weekDays.replaceChildren();
 
   if (!days || days.length === 0) {
@@ -419,6 +426,8 @@ const setupEventListeners = () => {
       if (restaurant) {
         toggleFavorite(restaurant);
       }
+
+      console.log("Favourites:", Array.from(state.favourites));
 
       return;
     }
