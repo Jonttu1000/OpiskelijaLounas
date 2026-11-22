@@ -30,6 +30,8 @@ const elements = {
   viewTabs: document.querySelectorAll(".view-tab"),
 };
 
+let menuRequestId = 0;
+
 // Creates a new HTML element
 const createElement = (tag, className = "", textContent = "") => {
   const element = document.createElement(tag);
@@ -61,19 +63,19 @@ const updateFavoriteButton = (button, restaurant) => {
 // Creates a restaurant card element
 const createRestaurantCard = (restaurant, index) => {
   const card = createElement("div", "restaurant-card");
-  card.dataset.restaurantId = restaurant._id;
+  card.dataset.restaurantId = String(restaurant._id);
 
   // If selected restaurant, add 'selected' class
   if (
     state.selectedRestaurant &&
-    state.selectedRestaurant._id === restaurant._id
+    String(state.selectedRestaurant._id) === String(restaurant._id)
   ) {
     card.classList.add("selected");
   }
 
   const link = createElement("a", "restaurant-card-link");
   link.href = "#restaurant-details";
-  link.dataset.restaurantId = restaurant._id;
+  link.dataset.restaurantId = String(restaurant._id);
 
   const iconColors = ["", "gold", "blue", "purple", "coral"];
   const iconColor = iconColors[index % iconColors.length];
@@ -204,7 +206,7 @@ const renderCourseList = (container, courses) => {
   container.replaceChildren();
 
   if (!courses || courses.length === 0) {
-    container.append(createElement("p", "", "Ei ruokalistaa saatavilla!"));
+    container.append(createElement("p", "", "Ei ruokalistaa saatavilla."));
     return;
   }
 
@@ -232,22 +234,7 @@ const parseApiDate = (value) => {
     return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
   }
 
-  return new Date(value);
-};
-
-// Calculates the ISO week number for a given date
-const getISOWeekNumber = (date) => {
-  const currentDate = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
-  );
-
-  currentDate.setUTCDate(
-    currentDate.getUTCDate() + 4 - (currentDate.getUTCDay() || 7),
-  );
-
-  const yearStart = new Date(Date.UTC(currentDate.getUTCFullYear(), 0, 1));
-
-  return Math.ceil(((currentDate - yearStart) / 86400000 + 1) / 7);
+  return null;
 };
 
 // Renders the daily menu for a restaurant
@@ -261,62 +248,39 @@ const renderDailyMenu = (courses) => {
 
 // Renders the weekly menu for a restaurant
 const renderWeeklyMenu = (days) => {
-  console.table(
-    days.map((day) => ({
-      apiDate: day.date,
-      parsedDate: parseApiDate(day.date).toLocaleDateString("fi-FI"),
-      courses: day.courses?.length ?? 0,
-    })),
-  );
   elements.weekDays.replaceChildren();
+  elements.weekLabel.textContent = "Viikon ruokalista";
 
   if (!days || days.length === 0) {
-    elements.weekLabel.append(
-      createElement("p", "", "Ei ruokalistaa saatavilla!"),
-    );
+    elements.weekDays.append(createElement("p", "", "Ei ruokalistaa saatavilla."));
     return;
   }
 
-  const firstDate = parseApiDate(days[0].date);
-
-  if (!Number.isNaN(firstDate.getTime())) {
-    elements.weekLabel.textContent = `Viikko ${getISOWeekNumber(firstDate)} / ${firstDate.getFullYear()}`;
-  }
-
-  const today = new Date();
-
   days.forEach((day) => {
     const date = parseApiDate(day.date);
-    const validDate = !Number.isNaN(date.getTime());
+    const validDate = date instanceof Date && !Number.isNaN(date.getTime());
 
     const details = createElement("details");
 
-    if (validDate && date.toDateString() === today.toDateString()) {
-      details.open = true;
-    }
-
     const summary = createElement("summary");
     const dayInfo = createElement("span");
+    const rawDate = String(day.date ?? "").trim();
 
-    const weekday = validDate
-      ? new Intl.DateTimeFormat("fi-FI", { weekday: "long" }).format(date)
-      : "Päivä";
-
-    const dateText = validDate
-      ? new Intl.DateTimeFormat("fi-FI", {
-          day: "numeric",
-          month: "long",
-        }).format(date)
-      : "";
-
-    dayInfo.append(
-      createElement(
-        "strong",
-        "",
-        weekday.charAt(0).toUpperCase() + weekday.slice(1),
-      ),
-      createElement("small", "", dateText),
-    );
+    if (rawDate) {
+      dayInfo.append(createElement("strong", "", rawDate));
+    } else if (validDate) {
+      dayInfo.append(
+        createElement(
+          "strong",
+          "",
+          new Intl.DateTimeFormat("fi-FI", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          }).format(date),
+        ),
+      );
+    }
 
     const chevron = createElement("span", "day-chevron", "›");
     chevron.setAttribute("aria-hidden", "true");
@@ -330,7 +294,7 @@ const renderWeeklyMenu = (days) => {
       renderCourseList(meals, day.courses);
       details.append(meals);
     } else {
-      details.append(createElement("p", "", "Ei ruokalistaa saatavilla!"));
+      details.append(createElement("p", "", "Ei ruokalistaa saatavilla."));
     }
 
     elements.weekDays.append(details);
@@ -355,28 +319,40 @@ const setMenuView = (view) => {
 
 // Loads the daily and weekly menus for a restaurant using api.
 const loadMenus = async (restaurant) => {
+  const requestId = ++menuRequestId;
+
   elements.dayMenuList.textContent = "Ladataan ruokalistaa...";
   elements.weekDays.textContent = "Ladataan ruokalistaa...";
+  elements.weekLabel.textContent = "Viikon ruokalista";
 
   const [dailyResult, weeklyResult] = await Promise.allSettled([
     getDailyMenu(restaurant._id),
     getWeeklyMenu(restaurant._id),
   ]);
 
-  if (String(state.selectedRestaurant?._id) !== String(restaurant._id)) {
+  if (
+    requestId !== menuRequestId ||
+    String(state.selectedRestaurant?._id) !== String(restaurant._id)
+  ) {
     return;
   }
 
   if (dailyResult.status === "fulfilled") {
     renderDailyMenu(dailyResult.value);
   } else {
-    elements.dayMenuList.textContent = `Ruokalistaa ei saada ladattua: ${dailyResult.reason}`;
+    console.error("Päivän ruokalistan lataaminen epäonnistui:", dailyResult.reason);
+    elements.dayMenuList.replaceChildren(
+      createElement("p", "", "Ei ruokalistaa saatavilla."),
+    );
   }
 
   if (weeklyResult.status === "fulfilled") {
     renderWeeklyMenu(weeklyResult.value);
   } else {
-    elements.weekDays.textContent = `Ruokalistaa ei saada ladattua: ${weeklyResult.reason}`;
+    console.error("Viikon ruokalistan lataaminen epäonnistui:", weeklyResult.reason);
+    elements.weekDays.replaceChildren(
+      createElement("p", "", "Ei ruokalistaa saatavilla."),
+    );
   }
 };
 
@@ -413,6 +389,12 @@ const loadRestaurants = async () => {
 
 //Event listeners
 const setupEventListeners = () => {
+  elements.favoriteButton.addEventListener("click", () => {
+    if (state.selectedRestaurant) {
+      toggleFavorite(state.selectedRestaurant);
+    }
+  });
+
   elements.restaurantList.addEventListener("click", async (event) => {
     // Favourite button clicked
     const heart = event.target.closest(".heart");

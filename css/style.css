@@ -551,6 +551,11 @@ h1 em {
 .favorite-button:hover {
   background: var(--mint);
 }
+.favorite-button[aria-pressed="true"] {
+  color: #c76558;
+  border-color: #e5b6ae;
+  background: #fff7f5;
+}
 .view-switcher {
   display: flex;
   gap: 3px;

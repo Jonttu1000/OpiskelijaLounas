@@ -23,10 +23,16 @@ export const getRestaurants = async () => {
 }
 export const getDailyMenu = async (restaurantId, lang='fi') => {
     const data = await fetchData(`/restaurants/daily/${encodeURIComponent(restaurantId)}/${lang}`);
-    return data.courses ?? [];
+    if (Array.isArray(data)) {
+        return data;
+    }
+    return data?.courses ?? [];
 }
 
 export const getWeeklyMenu = async (restaurantId, lang='fi') => {
     const data = await fetchData(`/restaurants/weekly/${encodeURIComponent(restaurantId)}/${lang}`);
-    return data.days ?? [];
+    if (Array.isArray(data)) {
+        return data;
+    }
+    return data?.days ?? [];
 }
