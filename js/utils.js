@@ -1,0 +1,1 @@
+//TODO: Utility functions for the application. example: organize restaurants, filter by category, etc.
