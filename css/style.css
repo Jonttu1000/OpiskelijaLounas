@@ -484,21 +484,6 @@ h1 em {
   color: #c76558;
   transform: scale(1.08);
 }
-.load-more {
-  width: 100%;
-  margin-top: 17px;
-  padding: 13px;
-  border: 1px dashed #cad8ce;
-  border-radius: 8px;
-  color: var(--green);
-  background: transparent;
-  font-size: 11px;
-  font-weight: 700;
-}
-.load-more span {
-  margin-left: 7px;
-  font-size: 14px;
-}
 /* Restaurant details and menus */
 .details-panel {
   padding: 32px 35px 23px;
