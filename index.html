@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="OpiskelijaLounas auttaa löytämään opiskelijaravintolat ja niiden ruokalistat."
+    />
+    <title>OpiskelijaLounas | Löydä päivän lounas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&;family=Playfair+Display:wght@700&;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <a class="brand" href="#" aria-label="OpiskelijaLounas, etusivu">
+          <span class="brand-mark" aria-hidden="true">
+
+            <svg viewBox="0 0 32 32">
+              <path
+                d="M7 5v8a4 4 0 0 0 3 3.87V27h3V16.87A4 4 0 0 0 16 13V5h-2v7h-1V5h-2v7h-1V5H7Zm15 0c-2.21 0-4 2.24-4 5v4c0 1.66 1.12 3.06 2.65 3.48V27h2.7V17.48A3.61 3.61 0 0 0 26 14V5h-4Z"
+              />
+            </svg>
+          </span>
+          <span>Opiskelija<span class="brand-accent">Lounas</span></span>
+        </a>
+        <div class="header-actions">
+          <span class="header-status"
+            ><span class="status-dot"></span> Palvelu toimii</span
+          >
+          <button class="login-button" type="button">
+            Kirjaudu sisään <span aria-hidden="true">→</span>
+          </button>
+          <details class="profile-menu">
+            <summary class="profile-trigger" aria-label="Avaa profiilivalikko">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5"></circle>
+                <path d="M5 20c.7-3.5 3.1-5.5 7-5.5s6.3 2 7 5.5"></path>
+              </svg>
+            </summary>
+            <div class="profile-dropdown">
+              <strong>Anonymous</strong>
+              <a href="#">Omat tiedot</a>
+              <a href="#">Suosikit</a>
+              <a href="#">Kirjaudu ulos</a>
+            </div>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="eyebrow-line"></span> Hyvää ruokahalua
+          </p>
+          <h1 id="page-title">Löydä päivän<br /><em>paras lounas.</em></h1>
+          <p class="hero-intro">
+            Suomen opiskelijaravintolat ja ruokalistat yhdessä paikassa.
+          </p>
+        </div>
+        <div class="search-wrap">
+          <label class="sr-only" for="restaurant-search"
+            >Hae ravintolaa, koulua tai kaupunkia</label
+          >
+          <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="10.8" cy="10.8" r="6.8"></circle>
+            <path d="m16 16 5 5"></path>
+          </svg>
+          <input
+            id="restaurant-search"
+            type="search"
+            placeholder="Hae ravintolaa, koulua tai kaupunkia..."
+            autocomplete="off"
+          />
+        </div>
+      </section>
+
+      <section
+        class="container app-layout"
+        aria-label="Ravintolat ja ruokalistat"
+      >
+        <aside class="restaurants-panel panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">Lähellä sinua</p>
+              <h2>Ravintolat <span class="count">12</span></h2>
+            </div>
+            <details class="filter">
+              <summary>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 6h16M7 12h10M10 18h4" />
+                </svg>
+                Suodata
+              </summary>
+              <div class="filter-menu">
+                <span class="filter-title">Järjestä</span>
+                <label
+                  ><input type="radio" name="sort" checked /> Aakkosjärjestys
+                  A–Ö</label
+                >
+                <label
+                  ><input type="radio" name="sort" /> Aakkosjärjestys Ö–A</label
+                >
+                <label><input type="radio" name="sort" /> Lähin ensin</label>
+                <span class="filter-title filter-title-spaced">Kaupunki</span>
+                <label class="city-field" for="city-filter">
+                  <span class="sr-only">Hae kaupunkia</span>
+                  <input id="city-filter" name="city" type="search" list="city-options" placeholder="Hae kaupunkia..." autocomplete="off" />
+                </label>
+                <datalist id="city-options">
+                  <option value="Helsinki"></option>
+                  <option value="Espoo"></option>
+                  <option value="Vantaa"></option>
+                </datalist>
+              </div>
+            </details>
+          </div>
+          <div class="restaurant-list">
+            <div class="restaurant-card selected">
+              <a class="restaurant-card-link" href="#restaurant-details" aria-current="true"><span class="restaurant-icon">KA</span><span class="restaurant-card-copy"><span class="restaurant-name">Ravintola Kipsari</span><small>Otakaari 7 · Espoo</small><small class="provider">Aalto-yliopisto</small></span></a>
+              <button class="heart" type="button" aria-label="Lisää Ravintola Kipsari suosikiksi" aria-pressed="false">♡</button>
+            </div>
+            <div class="restaurant-card">
+              <a class="restaurant-card-link" href="#restaurant-details"><span class="restaurant-icon purple">SO</span><span class="restaurant-card-copy"><span class="restaurant-name">Soittorasia</span><small>Otakaari 3 · Espoo</small><small class="provider">Aalto-yliopisto</small></span></a>
+              <button class="heart" type="button" aria-label="Lisää Soittorasia suosikiksi" aria-pressed="false">♡</button>
+            </div>
+            <div class="restaurant-card">
+              <a class="restaurant-card-link" href="#restaurant-details"><span class="restaurant-icon gold">TU</span><span class="restaurant-card-copy"><span class="restaurant-name">Tuuli</span><small>Hervannan valtatie 20 · Tampere</small><small class="provider">Juvenes</small></span></a>
+              <button class="heart" type="button" aria-label="Lisää Tuuli suosikiksi" aria-pressed="false">♡</button>
+            </div>
+            <div class="restaurant-card">
+              <a class="restaurant-card-link" href="#restaurant-details"><span class="restaurant-icon blue">AL</span><span class="restaurant-card-copy"><span class="restaurant-name">Alvari</span><small>Otakaari 1 · Espoo</small><small class="provider">Aalto-yliopisto</small></span></a>
+              <button class="heart" type="button" aria-label="Lisää Alvari suosikiksi" aria-pressed="false">♡</button>
+            </div>
+            <div class="restaurant-card">
+              <a class="restaurant-card-link" href="#restaurant-details"><span class="restaurant-icon coral">DE</span><span class="restaurant-card-copy"><span class="restaurant-name">Delica</span><small>Leppävaarankatu 9 · Espoo</small><small class="provider">Unicafe</small></span></a>
+              <button class="heart" type="button" aria-label="Lisää Delica suosikiksi" aria-pressed="false">♡</button>
+            </div>
+            <div class="restaurant-card">
+              <a class="restaurant-card-link" href="#restaurant-details"><span class="restaurant-icon green">JU</span><span class="restaurant-card-copy"><span class="restaurant-name">Juvenes Café</span><small>Kalevantie 4 · Tampere</small><small class="provider">Juvenes</small></span></a>
+              <button class="heart" type="button" aria-label="Lisää Juvenes Café suosikiksi" aria-pressed="false">♡</button>
+            </div>
+          </div>
+          <button class="load-more" type="button">
+            Näytä kaikki ravintolat <span aria-hidden="true">↓</span>
+          </button>
+        </aside>
+
+        <article class="details-panel panel" id="restaurant-details">
+          <div class="restaurant-intro">
+            <div>
+              <p class="section-label">Valittu ravintola</p>
+              <h2>Ravintola Kipsari</h2>
+              <p class="location">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
+                  <circle cx="12" cy="9" r="2.2" />
+                </svg>
+                Otakaari 7, 02150 Espoo
+              </p>
+              <p class="provider-line">Aalto-yliopisto <span>·</span> Sodexo</p>
+            </div>
+            <button class="favorite-button" type="button" aria-label="Lisää Ravintola Kipsari suosikiksi" aria-pressed="false">
+              <span aria-hidden="true">♡</span> Suosikki
+            </button>
+          </div>
+          <div class="view-switcher" aria-label="Ruokalistan näkymä">
+            <button class="view-tab active" type="button">Päivän lista</button>
+            <button class="view-tab" type="button">Viikon lista</button>
+          </div>
+          <section id="day-menu" aria-labelledby="day-menu-title" visible>
+            <div class="menu-date">
+              <div>
+                <p class="section-label">Tänään</p>
+                <h3 id="day-menu-title">Keskiviikko 4. marraskuuta</h3>
+              </div>
+              <span class="open-status"><span class="status-dot"></span> Avoinna 10:30–14:00</span>
+            </div>
+            <div class="menu-list">
+              <article class="meal-card featured-meal">
+                <div class="meal-number">01</div>
+                <div class="meal-content">
+                  <h4>Paahdettua lohta ja sitruunaperunoita</h4>
+                  <p>Yrttinen jogurttikastike, paahdettuja kasviksia ja vihreää salaattia.</p>
+                  <div class="tags"><span>G</span><span>L</span><span class="tag-note">Suosittu</span></div>
+                </div>
+                <strong class="price">2,95 €</strong>
+              </article>
+              <article class="meal-card">
+                <div class="meal-number">02</div>
+                <div class="meal-content">
+                  <h4>Kasvislasagne</h4>
+                  <p>Paahdettua tomaattia, kesäkurpitsaa ja pinaattia. Tarjoillaan salaatin kanssa.</p>
+                  <div class="tags"><span>L</span><span>VL</span></div>
+                </div>
+                <strong class="price">2,95 €</strong>
+              </article>
+              <article class="meal-card">
+                <div class="meal-number">03</div>
+                <div class="meal-content">
+                  <h4>Vihreä curry tofulla</h4>
+                  <p>Thaimaalainen kookoscurry, jasmiiniriisiä ja tuoreita yrttejä.</p>
+                  <div class="tags"><span>VE</span><span>G</span></div>
+                </div>
+                <strong class="price">2,95 €</strong>
+              </article>
+            </div>
+          </section>
+          <section id="week-menu" class="week-menu" aria-labelledby="week-menu-title" hidden>
+            <p class="section-label">Viikko 45 / 2026</p>
+            <h3 id="week-menu-title" class="week-menu-title">Viikon ruokalista</h3>
+            <div class="week-days">
+              <details>
+                <summary><span><strong>Maanantai</strong><small>2. marraskuuta</small></span><span class="day-chevron" aria-hidden="true">›</span></summary>
+                <p>Ei ruokalistaa saatavilla.</p>
+              </details>
+              <details>
+                <summary><span><strong>Tiistai</strong><small>3. marraskuuta</small></span><span class="day-chevron" aria-hidden="true">›</span></summary>
+                <div class="menu-list week-meals"><article class="meal-card"><div class="meal-number">01</div><div class="meal-content"><h4>Kasvislasagne</h4><p>Paahdettua tomaattia, kesäkurpitsaa ja pinaattia.</p><div class="tags"><span>L</span><span>VL</span></div></div><strong class="price">2,95 €</strong></article></div>
+              </details>
+              <details open>
+                <summary><span><strong>Keskiviikko</strong><small>4. marraskuuta</small></span><span class="day-chevron" aria-hidden="true">⌄</span></summary>
+                <div class="menu-list week-meals">
+                  <article class="meal-card featured-meal"><div class="meal-number">01</div><div class="meal-content"><h4>Paahdettua lohta ja sitruunaperunoita</h4><p>Yrttinen jogurttikastike, paahdettuja kasviksia ja vihreää salaattia.</p><div class="tags"><span>G</span><span>L</span><span class="tag-note">Suosittu</span></div></div><strong class="price">2,95 €</strong></article>
+                  <article class="meal-card"><div class="meal-number">02</div><div class="meal-content"><h4>Kasvislasagne</h4><p>Paahdettua tomaattia, kesäkurpitsaa ja pinaattia.</p><div class="tags"><span>L</span><span>VL</span></div></div><strong class="price">2,95 €</strong></article>
+                  <article class="meal-card"><div class="meal-number">02</div><div class="meal-content"><h4>Vihreä curry tofulla</h4><p>Thaimaalainen kookoscurry, jasmiiniriisiä ja tuoreita yrttejä.</p><div class="tags"><span>L</span><span>VL</span></div></div><strong class="price">2,95 €</strong></article>
+                </div>
+              </details>
+              <details><summary><span><strong>Torstai</strong><small>5. marraskuuta</small></span><span class="day-chevron" aria-hidden="true">›</span></summary><p>Ei ruokalistaa saatavilla.</p></details>
+              <details><summary><span><strong>Perjantai</strong><small>6. marraskuuta</small></span><span class="day-chevron" aria-hidden="true">›</span></summary><p>Ei ruokalistaa saatavilla.</p></details>
+              <details><summary><span><strong>Lauantai</strong><small>7. marraskuuta</small></span><span class="day-chevron" aria-hidden="true">›</span></summary><p>Ei ruokalistaa saatavilla.</p></details>
+              <details><summary><span><strong>Sunnuntai</strong><small>8. marraskuuta</small></span><span class="day-chevron" aria-hidden="true">›</span></summary><p>Ei ruokalistaa saatavilla.</p></details>
+            </div>
+          </section>
+          <p class="allergen-note">
+            <strong>G</strong> Gluteeniton &nbsp; <strong>L</strong> Laktoositon
+            &nbsp; <strong>VE</strong> Vegaaninen
+          </p>
+        </article>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <span>OpiskelijaLounas</span
+        ><span>JT1000 · 2026</span>
+      </div>
+    </footer>
+  </body>
+</html>
