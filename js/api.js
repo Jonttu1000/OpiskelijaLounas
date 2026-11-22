@@ -14,11 +14,12 @@ const fetchData = async (endpoint) => {
         return data;
     } catch (error) {
         console.error('Error fetching data:', error);
+        throw error;
     }
 };
 export const getRestaurants = async () => {
     const data = await fetchData('/restaurants');
-    return data.restaurants ?? [];
+    return data ?? [];
 }
 export const getDailyMenu = async (restaurantId, lang='fi') => {
     const data = await fetchData(`/restaurants/daily/${encodeURIComponent(restaurantId)}/${lang}`);

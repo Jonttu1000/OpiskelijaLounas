@@ -47,7 +47,7 @@ const getInitials = (name) => {
 
 // Update favourite button state
 const updateFavoriteButton = (button, restaurant) => {
-  const isFavourite = state.favourites.has(String(restaurant.id));
+  const isFavourite = state.favourites.has(String(restaurant._id));
 
   if (isFavourite) {
     button.textContent = "♥";
@@ -82,7 +82,9 @@ const createRestaurantCard = (restaurant, index) => {
     "restaurant-icon",
     getInitials(restaurant.name),
   );
-  icon.classList.add(iconColor);
+  if (iconColor) {
+    icon.classList.add(iconColor);
+  }
 
   const copy = createElement("span", "restaurant-card-copy");
 
@@ -94,6 +96,7 @@ const createRestaurantCard = (restaurant, index) => {
   const address = createElement("small", "", addressWhole);
 
   copy.append(name, address);
+  link.append(icon, copy);
 
   const heart = createElement("button", "heart", "♡");
   heart.type = "button";
@@ -108,7 +111,7 @@ const createRestaurantCard = (restaurant, index) => {
 
 // Shows the restaurant on the page
 const renderRestaurants = () => {
-  const fragmet = document.createDocumentFragment();
+  const fragment = document.createDocumentFragment();
 
   state.restaurants.forEach((restaurant, index) => {
     fragment.append(createRestaurantCard(restaurant, index));
@@ -137,10 +140,10 @@ const renderRestaurantDetails = (restaurant) => {
     elements.restaurantLocation.prepend(locationIcon);
   }
 
-  elements.providerLine.textContent = restaurant.provider || "";
-  if (restaurant.provider) elements.providerLine.hidden = false;
+  elements.providerLine.textContent = restaurant.company || "";
+  elements.providerLine.hidden = !restaurant.company;
 
-  updateDetailsFavoriteButton();
+  updateDetailFavoriteButton();
 };
 
 // Update chosen restaurants favourite button state
@@ -148,19 +151,19 @@ const updateDetailFavoriteButton = () => {
   const restaurant = state.selectedRestaurant;
   if (!restaurant) return;
 
-  const isFavourite = state.favourites.has(String(restaurant.id));
+  const isFavourite = state.favourites.has(String(restaurant._id));
   const icon = elements.favoriteButton.querySelector("span");
 
   if (icon) {
     icon.textContent = isFavourite ? "♥" : "♡";
   }
 
-  elements.favouritesButton.setAttribute("aria-pressed", isFavourite);
+  elements.favoriteButton.setAttribute("aria-pressed", isFavourite);
 };
 
 // Toggle favourite status for a restaurant
 const toggleFavorite = (restaurant) => {
-  const id = String(restaurant.id);
+  const id = String(restaurant._id);
   if (state.favourites.has(id)) {
     state.favourites.delete(id);
   } else {
@@ -187,7 +190,7 @@ const createMealCard = (course, index) => {
 
   if (course.diets) {
     const tags = createElement("div", "tags");
-    tags.append(createElement("span", course.diets));
+    tags.append(createElement("span", "", course.diets));
     content.append(tags);
   }
 
@@ -251,9 +254,6 @@ const getISOWeekNumber = (date) => {
 const renderDailyMenu = (courses) => {
   elements.dayMenuTitle.textContent = formatFinishDate(new Date());
 
-  // No menu found -> retaurant closed.
-  elements.dayMenuOpenStatus.hidden = !courses || courses.length === 0;
-
   elements.dayMenuOpenStatus.hidden = true;
 
   renderCourseList(elements.dayMenuList, courses);
@@ -315,6 +315,7 @@ const renderWeeklyMenu = (days) => {
     chevron.setAttribute("aria-hidden", "true");
 
     summary.append(dayInfo, chevron);
+    details.append(summary);
 
     if (day.courses && day.courses.length > 0) {
       const meals = createElement("div", "menu-list week-meals");
@@ -332,7 +333,7 @@ const renderWeeklyMenu = (days) => {
 const setMenuView = (view) => {
   state.currentView = view;
 
-  if (view === "daily") {
+  if (view === "day") {
     elements.dayMenu.hidden = false;
     elements.weekMenu.hidden = true;
   } else {
@@ -355,7 +356,7 @@ const loadMenus = async (restaurant) => {
     getWeeklyMenu(restaurant._id),
   ]);
 
-  if (String(state.sellectedRestaurant?._id) !== String(restaurant._id)) {
+  if (String(state.selectedRestaurant?._id) !== String(restaurant._id)) {
     return;
   }
 
