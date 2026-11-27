@@ -1,4 +1,5 @@
 import { getRestaurants, getDailyMenu, getWeeklyMenu } from "./api.js";
+import { searchRestaurants } from "./filter.js";
 
 //Application state
 const state = {
@@ -28,7 +29,10 @@ const elements = {
 
   viewSwitcher: document.querySelector(".view-switcher"),
   viewTabs: document.querySelectorAll(".view-tab"),
+
+  restaurantSearch: document.querySelector("#restaurant-search"),
 };
+
 
 let menuRequestId = 0;
 
@@ -115,12 +119,17 @@ const createRestaurantCard = (restaurant, index) => {
 const renderRestaurants = () => {
   const fragment = document.createDocumentFragment();
 
-  state.restaurants.forEach((restaurant, index) => {
+  const filteredRestaurants = searchRestaurants(
+    state.restaurants,
+    elements.restaurantSearch.value,
+  );
+
+  filteredRestaurants.forEach((restaurant, index) => {
     fragment.append(createRestaurantCard(restaurant, index));
   });
 
   elements.restaurantList.replaceChildren(fragment);
-  elements.restaurantCount.textContent = state.restaurants.length;
+  elements.restaurantCount.textContent = filteredRestaurants.length;
 };
 
 //Updates details for the selected restaurant
@@ -252,7 +261,9 @@ const renderWeeklyMenu = (days) => {
   elements.weekLabel.textContent = "Viikon ruokalista";
 
   if (!days || days.length === 0) {
-    elements.weekDays.append(createElement("p", "", "Ei ruokalistaa saatavilla."));
+    elements.weekDays.append(
+      createElement("p", "", "Ei ruokalistaa saatavilla."),
+    );
     return;
   }
 
@@ -340,7 +351,10 @@ const loadMenus = async (restaurant) => {
   if (dailyResult.status === "fulfilled") {
     renderDailyMenu(dailyResult.value);
   } else {
-    console.error("Päivän ruokalistan lataaminen epäonnistui:", dailyResult.reason);
+    console.error(
+      "Päivän ruokalistan lataaminen epäonnistui:",
+      dailyResult.reason,
+    );
     elements.dayMenuList.replaceChildren(
       createElement("p", "", "Ei ruokalistaa saatavilla."),
     );
@@ -349,7 +363,10 @@ const loadMenus = async (restaurant) => {
   if (weeklyResult.status === "fulfilled") {
     renderWeeklyMenu(weeklyResult.value);
   } else {
-    console.error("Viikon ruokalistan lataaminen epäonnistui:", weeklyResult.reason);
+    console.error(
+      "Viikon ruokalistan lataaminen epäonnistui:",
+      weeklyResult.reason,
+    );
     elements.weekDays.replaceChildren(
       createElement("p", "", "Ei ruokalistaa saatavilla."),
     );
@@ -413,7 +430,7 @@ const setupEventListeners = () => {
 
       return;
     }
-
+  
     // Restaurant chosen
     const link = event.target.closest(".restaurant-card-link");
     if (link) {
@@ -425,6 +442,13 @@ const setupEventListeners = () => {
       }
     }
   });
+
+  // Search input changed
+  elements.restaurantSearch.addEventListener("input", () => {
+      renderRestaurants();
+      console.log("Serach term:", elements.restaurantSearch.value);
+    });
+
 
   // View switcher clicked
   elements.viewSwitcher.addEventListener("click", (event) => {
