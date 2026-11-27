@@ -346,9 +346,6 @@ h1 em {
   font-weight: 700;
   text-transform: uppercase;
 }
-.filter-title-spaced {
-  margin-top: 13px;
-}
 .filter-menu label {
   display: block;
   padding: 5px 0;
@@ -358,18 +355,6 @@ h1 em {
 .filter-menu input {
   accent-color: var(--green);
   margin-right: 7px;
-}
-.filter-menu .city-field {
-  padding: 0;
-}
-.city-field input {
-  width: 100%;
-  padding: 7px 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  color: var(--ink);
-  background: #fbfcfa;
-  font-size: 11px;
 }
 .restaurant-list {
   display: grid;

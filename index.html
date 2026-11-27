@@ -104,23 +104,14 @@
               <div class="filter-menu">
                 <span class="filter-title">Järjestä</span>
                 <label
-                  ><input type="radio" name="sort" checked /> Aakkosjärjestys
+                  ><input type="radio" name="sort" value="name-asc" checked /> Aakkosjärjestys
                   A–Ö</label
                 >
                 <label
-                  ><input type="radio" name="sort" /> Aakkosjärjestys Ö–A</label
+                  ><input type="radio" name="sort" value="name-desc" /> Aakkosjärjestys Ö–A</label
                 >
-                <label><input type="radio" name="sort" /> Lähin ensin</label>
-                <span class="filter-title filter-title-spaced">Kaupunki</span>
-                <label class="city-field" for="city-filter">
-                  <span class="sr-only">Hae kaupunkia</span>
-                  <input id="city-filter" name="city" type="search" list="city-options" placeholder="Hae kaupunkia..." autocomplete="off" />
-                </label>
-                <datalist id="city-options">
-                  <option value="Helsinki"></option>
-                  <option value="Espoo"></option>
-                  <option value="Vantaa"></option>
-                </datalist>
+                <label><input type="radio" name="sort" value="location" /> Lähin ensin</label>
+                <label><input type="radio" name="sort" value="favourite" /> Suosikki</label>
               </div>
             </details>
           </div>

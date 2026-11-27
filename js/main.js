@@ -1,12 +1,21 @@
-import { getRestaurants, getDailyMenu, getWeeklyMenu } from "./api.js";
-import { searchRestaurants } from "./filter.js";
-
+import {
+  getRestaurants,
+  getDailyMenu,
+  getWeeklyMenu,
+  getCurrentUser,
+  updateUser,
+} from "./api.js";
+import { searchRestaurants, sortRestaurants } from "./filter.js";
+import { getUserLocation } from "./utils.js";
 //Application state
 const state = {
   restaurants: [],
   selectedRestaurant: null,
   currentView: "day", // 'day' or 'week'
-  favourites: new Set(), // Restaurant id : String
+  userLocation: null, // { latitude: Number, longitude: Number } or null
+  favourite: null, // Restaurant id : String
+  sortOption: "name-asc", // 'name-asc', 'name-desc', 'location', 'favourite'
+  authToken: localStorage.getItem("token") || null,
 };
 
 // HTML elements
@@ -31,8 +40,9 @@ const elements = {
   viewTabs: document.querySelectorAll(".view-tab"),
 
   restaurantSearch: document.querySelector("#restaurant-search"),
-};
 
+  restaurantFilters: document.querySelector("input[name='sort']"),
+};
 
 let menuRequestId = 0;
 
@@ -53,13 +63,9 @@ const getInitials = (name) => {
 
 // Update favourite button state
 const updateFavoriteButton = (button, restaurant) => {
-  const isFavourite = state.favourites.has(String(restaurant._id));
+  const isFavourite = state.favourite === String(restaurant._id);
 
-  if (isFavourite) {
-    button.textContent = "♥";
-  } else {
-    button.textContent = "♡";
-  }
+  button.textContent = isFavourite ? "♥" : "♡";
 
   button.setAttribute("aria-pressed", isFavourite);
 };
@@ -124,12 +130,14 @@ const renderRestaurants = () => {
     elements.restaurantSearch.value,
   );
 
-  filteredRestaurants.forEach((restaurant, index) => {
+  const sortedRestaurants = sortRestaurants(state, filteredRestaurants);
+
+  sortedRestaurants.forEach((restaurant, index) => {
     fragment.append(createRestaurantCard(restaurant, index));
   });
 
   elements.restaurantList.replaceChildren(fragment);
-  elements.restaurantCount.textContent = filteredRestaurants.length;
+  elements.restaurantCount.textContent = sortedRestaurants.length;
 };
 
 //Updates details for the selected restaurant
@@ -162,7 +170,7 @@ const updateDetailFavoriteButton = () => {
   const restaurant = state.selectedRestaurant;
   if (!restaurant) return;
 
-  const isFavourite = state.favourites.has(String(restaurant._id));
+  const isFavourite = state.favourite === String(restaurant._id);
   const icon = elements.favoriteButton.querySelector("span");
 
   if (icon) {
@@ -172,13 +180,28 @@ const updateDetailFavoriteButton = () => {
   elements.favoriteButton.setAttribute("aria-pressed", isFavourite);
 };
 
+let favouriteSaving = false;
+
 // Toggle favourite status for a restaurant
-const toggleFavorite = (restaurant) => {
-  const id = String(restaurant._id);
-  if (state.favourites.has(id)) {
-    state.favourites.delete(id);
-  } else {
-    state.favourites.add(id);
+const toggleFavorite = async (restaurant) => {
+  if (favouriteSaving) return;
+
+  const restaurantId = String(restaurant._id);
+  const newFavourite = state.favourite === restaurantId ? null : restaurantId;
+
+  if (state.authToken) {
+    favouriteSaving = true;
+
+    try {
+      await updateUser(state.authToken, { favourite: newFavourite });
+    } catch (error) {
+      console.error("Favourite saving failed:", error);
+      alert("Favourite couldn't be saved. Please try again.");
+    } finally {
+      favouriteSaving = false;
+    }
+
+    state.favourite = newFavourite;
   }
 
   renderRestaurants();
@@ -430,7 +453,7 @@ const setupEventListeners = () => {
 
       return;
     }
-  
+
     // Restaurant chosen
     const link = event.target.closest(".restaurant-card-link");
     if (link) {
@@ -445,10 +468,22 @@ const setupEventListeners = () => {
 
   // Search input changed
   elements.restaurantSearch.addEventListener("input", () => {
-      renderRestaurants();
-      console.log("Serach term:", elements.restaurantSearch.value);
-    });
+    renderRestaurants();
+    console.log("Serach term:", elements.restaurantSearch.value);
+  });
 
+  // Sort option changed
+  elements.restaurantFilters.forEach((radio) => {
+    radio.addEventListener("change", async () => {
+      state.sortOption = String(radio.value);
+
+      if (state.sortOption === "location") {
+        state.userLocation = await getUserLocation();
+      }
+
+      renderRestaurants();
+    });
+  });
 
   // View switcher clicked
   elements.viewSwitcher.addEventListener("click", (event) => {
