@@ -1,5 +1,4 @@
 import { getDistance } from "./utils.js";
-import { getRestaurantById } from "./api.js";
 
 const searchRestaurants = (restaurants, searchTerm) => {
   const searchTermLower = searchTerm.trim().toLowerCase();
@@ -28,14 +27,6 @@ const searchRestaurants = (restaurants, searchTerm) => {
 
 const sortRestaurants = (state, restaurants) => {
 
-    if(state.sortOption === "favourite") {
-        if (!state.favourite) {
-            return [];
-        } else {
-            return restaurants.filter(restaurant => String(restaurant._id) === String(state.favourite));
-        }
-    }
-
   const sortedRestaurants = [...restaurants].sort((a, b) => {
     switch (state.sortOption) {
       case "name-asc":
@@ -49,6 +40,11 @@ const sortRestaurants = (state, restaurants) => {
             return distanceA - distanceB;
         }
         return 0;
+        case "favourite":
+            const aFavourite = String(a._id) === state.favourite;
+            const bFavourite = String(b._id) === state.favourite;
+
+            return Number(bFavourite) - Number(aFavourite) || (a.name ?? "").localeCompare(b.name ?? "", 'fi');
       default:
         return 0;
     }

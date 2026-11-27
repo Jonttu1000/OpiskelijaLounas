@@ -41,7 +41,7 @@ const elements = {
 
   restaurantSearch: document.querySelector("#restaurant-search"),
 
-  restaurantFilters: document.querySelector("input[name='sort']"),
+  restaurantFilters: document.querySelectorAll("input[name='sort']"),
 };
 
 let menuRequestId = 0;
@@ -189,6 +189,7 @@ const toggleFavorite = async (restaurant) => {
   const restaurantId = String(restaurant._id);
   const newFavourite = state.favourite === restaurantId ? null : restaurantId;
 
+  // If user is logged in, save favourite to server
   if (state.authToken) {
     favouriteSaving = true;
 
@@ -200,12 +201,31 @@ const toggleFavorite = async (restaurant) => {
     } finally {
       favouriteSaving = false;
     }
-
-    state.favourite = newFavourite;
   }
+
+  state.favourite = newFavourite;
 
   renderRestaurants();
   updateDetailFavoriteButton();
+};
+
+// Load saved favourite from server if user is logged in
+const loadSavedFavourite = async () => {
+  if (!state.authToken) return;
+
+  try {
+    const response = await getCurrentUser(state.token);
+    const user = response.data;
+
+    state.favourite = user.favouriteRestaurant
+      ? String(user.favouriteRestaurant)
+      : null;
+
+    renderRestaurants();
+    updateDetailFavoriteButton();
+  } catch (error) {
+    console.error("Error while fetching user data", error);
+  }
 };
 
 // Creates a single meal card.
@@ -449,8 +469,6 @@ const setupEventListeners = () => {
         toggleFavorite(restaurant);
       }
 
-      console.log("Favourites:", Array.from(state.favourites));
-
       return;
     }
 
@@ -475,12 +493,25 @@ const setupEventListeners = () => {
   // Sort option changed
   elements.restaurantFilters.forEach((radio) => {
     radio.addEventListener("change", async () => {
-      state.sortOption = String(radio.value);
+      if (radio.value === "location" && !state.userLocation) {
+        const location = await getUserLocation();
+        if (!location) {
+          alert("could not get your location. Using default sorting instead.");
 
-      if (state.sortOption === "location") {
-        state.userLocation = await getUserLocation();
+          state.sortOption = "name-asc";
+
+          document.querySelector(
+            'input[name="sort"][value="name-asc"]',
+          ).checked = true;
+
+          renderRestaurants();
+          return;
+        } else {
+          state.userLocation = location;
+        }
       }
 
+      state.sortOption = String(radio.value);
       renderRestaurants();
     });
   });
@@ -495,10 +526,12 @@ const setupEventListeners = () => {
 };
 
 // Start the application
-const initApp = () => {
+const initApp = async () => {
   setupEventListeners();
   setMenuView("day");
-  loadRestaurants();
+
+  await loadRestaurants();
+  await loadSavedFavourite();
 };
 
 initApp();
