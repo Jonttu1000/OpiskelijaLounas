@@ -6,6 +6,7 @@ import {
   updateUser,
   loginUser,
   registerUser,
+  uploadAvatar,
 } from "./api.js";
 import { searchRestaurants, sortRestaurants } from "./filter.js";
 import { getUserLocation } from "./utils.js";
@@ -51,13 +52,27 @@ const elements = {
   loginError: document.querySelector("#login-error"),
   closeLogin: document.querySelector("#close-login"),
   profileMenu: document.querySelector(".profile-menu"),
-  profileUsername: document.querySelector("#profile-username"),
+  profileMenuUsername: document.querySelector("#profile-menu-username"),
   logoutButton: document.querySelector("#logout-button"),
 
   registerFields: document.querySelector("#register-fields"),
   toggleRegister: document.querySelector("#toggle-register"),
   loginTitle: document.querySelector("#login-title"),
   loginSubmitButton: document.querySelector("#login-form-submit-btn"),
+
+  // User profile
+  profileDialog: document.querySelector("#profile-dialog"),
+  profileLink: document.querySelector("#open-profile-dialog"),
+  profileClose: document.querySelector("#close-profile-dialog"),
+  profileCancel: document.querySelector("#cancel-profile-dialog"),
+
+  profileUsername: document.querySelector("#profile-username"),
+  profileEmail: document.querySelector("#profile-email"),
+
+  profileAvatarPreview: document.querySelector("#profile-avatar-preview"),
+  profileAvatarPlaceholder: document.querySelector(
+    "#profile-avatar-placeholder",
+  ),
 };
 
 let menuRequestId = 0;
@@ -493,6 +508,38 @@ const loadRestaurants = async () => {
   }
 };
 
+const openProfileDialog = async (event) => {
+  event.preventDefault();
+
+  if (!state.currentUser) {
+    alert("You must be logged in to view your profile.");
+    return;
+  }
+
+  try {
+    const user = await getCurrentUser(state.authToken);
+    state.currentUser = user;
+
+    //populate fields
+    elements.profileUsername.value = user.username || "";
+    elements.profileEmail.value = user.email || "";
+
+    if (user.avatar) {
+      elements.profileAvatarPreview.src = user.avatar;
+      elements.profileAvatarPreview.hidden = false;
+      elements.profileAvatarPlaceholder.hidden = true;
+    } else {
+      elements.profileAvatarPreview.hidden = true;
+      elements.profileAvatarPlaceholder.hidden = false;
+    }
+
+    elements.profileDialog.showModal();
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    alert("Käyttäjätietojen haku epäonnistui. Yritä uudelleen.");
+  }
+};
+
 //User login handling
 const updateAuthUI = () => {
   const isLoggedIn = Boolean(state.authToken && state.currentUser);
@@ -500,7 +547,7 @@ const updateAuthUI = () => {
   elements.loginButton.hidden = isLoggedIn;
   elements.profileMenu.hidden = !isLoggedIn;
 
-  elements.profileUsername.textContent =
+  elements.profileMenuUsername.textContent =
     state.currentUser?.username ?? "Anonymous";
 };
 
@@ -534,6 +581,15 @@ const setAuthMode = (registerMode) => {
 
 //Event listeners
 const setupEventListeners = () => {
+  // === PRofile dialog ===
+  elements.profileLink.addEventListener("click", openProfileDialog);
+  elements.profileClose.addEventListener("click", () => {
+    elements.profileDialog.close();
+  });
+  elements.profileCancel.addEventListener("click", () => {
+    elements.profileDialog.close();
+  });
+
   elements.favoriteButton.addEventListener("click", () => {
     if (state.selectedRestaurant) {
       toggleFavorite(state.selectedRestaurant);

@@ -96,15 +96,113 @@
               </svg>
             </summary>
             <div class="profile-dropdown">
-              <strong id="profile-username">Anonymous</strong>
-              <a href="#">Omat tiedot</a>
-              <a href="#">Suosikit</a>
+              <strong id="profile-menu-username">Anonymous</strong>
+              <a href="#" id="open-profile-dialog">Omat tiedot</a>
               <a href="#" id="logout-button">Kirjaudu ulos</a>
             </div>
           </details>
         </div>
       </div>
     </header>
+
+    <dialog id="profile-dialog" class="profile-dialog">
+      <div class="profile-dialog-content">
+
+        <div class="profile-dialog-header">
+          <div>
+            <p class="section-label">Käyttäjätili</p>
+            <h2>Omat tiedot</h2>
+          </div>
+
+          <button
+            type="button"
+            id="close-profile-dialog"
+            class="profile-dialog-close"
+            aria-label="Sulje"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="profile-form">
+
+          <div class="profile-avatar-editor">
+            <img
+              id="profile-avatar-preview"
+              alt="Profiilikuva"
+              hidden
+            />
+
+            <div id="profile-avatar-placeholder">
+              <span>👤</span>
+            </div>
+
+            <div class="profile-avatar-actions">
+              <strong>Profiilikuva</strong>
+              <label for="profile-avatar-input" class="avatar-upload-button">
+                Vaihda kuva
+              </label>
+              <input
+                type="file"
+                id="profile-avatar-input"
+                accept="image/*"
+                hidden
+              />
+            </div>
+          </div>
+
+          <div class="profile-form-fields">
+
+            <label for="profile-username">Käyttäjätunnus</label>
+            <input
+              type="text"
+              id="profile-username"
+              name="username"
+              autocomplete="username"
+              required
+            />
+
+            <label for="profile-email">Sähköposti</label>
+            <input
+              type="email"
+              id="profile-email"
+              name="email"
+              autocomplete="email"
+              required
+            />
+
+            <label for="profile-password">Uusi salasana (valinnainen)</label>
+            <input
+              type="password"
+              id="profile-password"
+              name="password"
+              autocomplete="new-password"
+              placeholder="Jätä tyhjäksi, jos et vaihda"
+            />
+
+          </div>
+
+          <div class="profile-dialog-actions">
+            <button
+              type="button"
+              id="cancel-profile-dialog"
+              class="profile-cancel-button"
+            >
+              Peruuta
+            </button>
+
+            <button type="submit" class="profile-save-button" disabled>
+              Tallenna muutokset
+            </button>
+          </div>
+
+          <p class="profile-save-note">
+            Tallennustoiminto toteutetaan seuraavassa vaiheessa.
+          </p>
+
+        </form>
+      </div>
+    </dialog>
 
     <main>
       <section class="hero container" aria-labelledby="page-title">

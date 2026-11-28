@@ -89,6 +89,19 @@ export const updateUser = async (token, userData) => {
   });
 };
 
+export  const uploadAvatar = async (token, file) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    return await fetchData("/users/avatar", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+    });
+}
+
 export const registerUser = async (username, email, password) => {
   return await fetchData("/users", {
     method: "POST",
