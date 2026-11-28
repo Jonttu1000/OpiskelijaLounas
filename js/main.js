@@ -227,6 +227,26 @@ const toggleFavorite = async (restaurant) => {
   updateDetailFavoriteButton();
 };
 
+const authenticateUser = async (username, password) => {
+  const loginResult = await loginUser(username, password);
+  const user = await getCurrentUser(loginResult.token);
+
+  state.authToken = loginResult.token;
+  state.currentUser = user;
+
+  state.favourite = user.favouriteRestaurant
+    ? String(user.favouriteRestaurant)
+    : null;
+
+  localStorage.setItem("token", state.authToken);
+
+  updateAuthUI();
+  renderRestaurants();
+  updateDetailFavoriteButton();
+
+  return user;
+};
+
 // Load saved favourite from server if user is logged in
 const loadSavedFavourite = async () => {
   if (!state.authToken) return;
@@ -498,8 +518,8 @@ const setAuthMode = (registerMode) => {
   elements.toggleRegister.textContent = registerMode
     ? "Takaisin kirjautumiseen"
     : "Luo uusi käyttäjä";
-  
-    elements.loginSubmitButton.textContent = registerMode
+
+  elements.loginSubmitButton.textContent = registerMode
     ? "Rekisteröidy"
     : "Kirjaudu";
 
@@ -624,7 +644,16 @@ const setupEventListeners = () => {
           return;
         }
 
-        await registerUser(username, email, password);
+        try {
+          await registerUser(username, email, password);
+        } catch (error) {
+          if (!error.message.includes("535 Authentication failed")) {
+            throw error;
+          }
+          console.warn("SMTP error. Trying automatic login...");
+        }
+
+        await authenticateUser(username, password);
 
         form.reset();
         setAuthMode(false);
@@ -632,21 +661,7 @@ const setupEventListeners = () => {
         elements.loginError.textContent =
           "Rekisteröinti onnistui! Voit nyt kirjautua sisään.";
       } else {
-        const loginResult = await loginUser(username, password);
-        const user = await getCurrentUser(loginResult.token);
-
-        state.authToken = loginResult.token;
-        state.currentUser = user;
-
-        state.favourite = user.favouriteRestaurant
-          ? String(user.favouriteRestaurant)
-          : null;
-
-        localStorage.setItem("token", state.authToken);
-
-        updateAuthUI();
-        renderRestaurants();
-        updateDetailFavoriteButton();
+        await authenticateUser(username, password);
 
         form.reset();
         elements.loginDialog.close();
