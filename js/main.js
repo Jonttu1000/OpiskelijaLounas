@@ -4,6 +4,8 @@ import {
   getWeeklyMenu,
   getCurrentUser,
   updateUser,
+  loginUser,
+  registerUser,
 } from "./api.js";
 import { searchRestaurants, sortRestaurants } from "./filter.js";
 import { getUserLocation } from "./utils.js";
@@ -13,6 +15,7 @@ const state = {
   selectedRestaurant: null,
   currentView: "day", // 'day' or 'week'
   userLocation: null, // { latitude: Number, longitude: Number } or null
+  currentUser: null, //
   favourite: null, // Restaurant id : String
   sortOption: "name-asc", // 'name-asc', 'name-desc', 'location', 'favourite'
   authToken: localStorage.getItem("token") || null,
@@ -40,8 +43,21 @@ const elements = {
   viewTabs: document.querySelectorAll(".view-tab"),
 
   restaurantSearch: document.querySelector("#restaurant-search"),
-
   restaurantFilters: document.querySelectorAll("input[name='sort']"),
+
+  loginButton: document.querySelector(".login-button"),
+  loginDialog: document.querySelector("#login-dialog"),
+  loginForm: document.querySelector("#login-form"),
+  loginError: document.querySelector("#login-error"),
+  closeLogin: document.querySelector("#close-login"),
+  profileMenu: document.querySelector(".profile-menu"),
+  profileUsername: document.querySelector("#profile-username"),
+  logoutButton: document.querySelector("#logout-button"),
+
+  registerFields: document.querySelector("#register-fields"),
+  toggleRegister: document.querySelector("#toggle-register"),
+  loginTitle: document.querySelector("#login-title"),
+  loginSubmitButton: document.querySelector("#login-form-submit-btn"),
 };
 
 let menuRequestId = 0;
@@ -194,10 +210,12 @@ const toggleFavorite = async (restaurant) => {
     favouriteSaving = true;
 
     try {
-      await updateUser(state.authToken, { favourite: newFavourite });
+      await updateUser(state.authToken, { favouriteRestaurant: newFavourite });
     } catch (error) {
       console.error("Favourite saving failed:", error);
       alert("Favourite couldn't be saved. Please try again.");
+      alert("Favourite couldn't be saved. Please try again.");
+      return;
     } finally {
       favouriteSaving = false;
     }
@@ -214,17 +232,25 @@ const loadSavedFavourite = async () => {
   if (!state.authToken) return;
 
   try {
-    const response = await getCurrentUser(state.token);
-    const user = response.data;
+    const user = await getCurrentUser(state.authToken);
 
+    state.currentUser = user;
     state.favourite = user.favouriteRestaurant
       ? String(user.favouriteRestaurant)
       : null;
 
+    updateAuthUI();
     renderRestaurants();
     updateDetailFavoriteButton();
   } catch (error) {
     console.error("Error while fetching user data", error);
+
+    //Clears saved session if token is invalid or expired
+    localStorage.removeItem("token");
+    state.authToken = null;
+    state.currentUser = null;
+    state.favourite = null;
+    updateAuthUI();
   }
 };
 
@@ -447,6 +473,45 @@ const loadRestaurants = async () => {
   }
 };
 
+//User login handling
+const updateAuthUI = () => {
+  const isLoggedIn = Boolean(state.authToken && state.currentUser);
+
+  elements.loginButton.hidden = isLoggedIn;
+  elements.profileMenu.hidden = !isLoggedIn;
+
+  elements.profileUsername.textContent =
+    state.currentUser?.username ?? "Anonymous";
+};
+
+let isRegisterMode = false;
+
+const setAuthMode = (registerMode) => {
+  isRegisterMode = registerMode;
+
+  elements.registerFields.hidden = !registerMode;
+
+  elements.loginTitle.textContent = registerMode
+    ? "Luo käyttäjätili"
+    : "Kirjaudu sisään";
+
+  elements.toggleRegister.textContent = registerMode
+    ? "Takaisin kirjautumiseen"
+    : "Luo uusi käyttäjä";
+  
+    elements.loginSubmitButton.textContent = registerMode
+    ? "Rekisteröidy"
+    : "Kirjaudu";
+
+  const emailInput = elements.loginForm.elements.email;
+  const confirmInput = elements.loginForm.elements.confirmPassword;
+
+  emailInput.required = registerMode;
+  confirmInput.required = registerMode;
+
+  elements.loginError.textContent = "";
+};
+
 //Event listeners
 const setupEventListeners = () => {
   elements.favoriteButton.addEventListener("click", () => {
@@ -495,6 +560,8 @@ const setupEventListeners = () => {
     radio.addEventListener("change", async () => {
       if (radio.value === "location" && !state.userLocation) {
         const location = await getUserLocation();
+        if (!radio.checked) return; // User changed selection while waiting for location
+
         if (!location) {
           alert("could not get your location. Using default sorting instead.");
 
@@ -523,12 +590,104 @@ const setupEventListeners = () => {
       setMenuView(button.dataset.view);
     }
   });
-};
 
+  // ==== Login handling ====
+  elements.loginButton.addEventListener("click", () => {
+    elements.loginError.textContent = "";
+    elements.loginDialog.showModal();
+  });
+
+  elements.closeLogin.addEventListener("click", () => {
+    elements.loginDialog.close();
+  });
+
+  elements.loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const form = elements.loginForm;
+
+    const username = form.elements.username.value.trim();
+    const password = form.elements.password.value;
+
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    elements.loginError.textContent = "";
+    submitButton.disabled = true;
+
+    try {
+      if (isRegisterMode) {
+        const email = form.elements.email.value.trim();
+        const confirmPassword = form.elements.confirmPassword.value;
+
+        if (password !== confirmPassword) {
+          elements.loginError.textContent = "Salasanat eivät täsmää.";
+          return;
+        }
+
+        await registerUser(username, email, password);
+
+        form.reset();
+        setAuthMode(false);
+
+        elements.loginError.textContent =
+          "Rekisteröinti onnistui! Voit nyt kirjautua sisään.";
+      } else {
+        const loginResult = await loginUser(username, password);
+        const user = await getCurrentUser(loginResult.token);
+
+        state.authToken = loginResult.token;
+        state.currentUser = user;
+
+        state.favourite = user.favouriteRestaurant
+          ? String(user.favouriteRestaurant)
+          : null;
+
+        localStorage.setItem("token", state.authToken);
+
+        updateAuthUI();
+        renderRestaurants();
+        updateDetailFavoriteButton();
+
+        form.reset();
+        elements.loginDialog.close();
+      }
+    } catch (error) {
+      console.error("Authentication failed:", error);
+      elements.loginError.textContent =
+        error.message ||
+        (isRegisterMode
+          ? "Rekisteröinti epäonnistui. Yritä uudelleen."
+          : "Kirjautuminen epäonnistui. Yritä uudelleen.");
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+
+  elements.logoutButton.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    localStorage.removeItem("token");
+
+    state.authToken = null;
+    state.currentUser = null;
+    state.favourite = null;
+
+    elements.profileMenu.open = false;
+
+    updateAuthUI();
+    renderRestaurants();
+    updateDetailFavoriteButton();
+  });
+
+  elements.toggleRegister.addEventListener("click", () => {
+    setAuthMode(!isRegisterMode);
+  });
+};
 // Start the application
 const initApp = async () => {
   setupEventListeners();
   setMenuView("day");
+  updateAuthUI();
 
   await loadRestaurants();
   await loadSavedFavourite();

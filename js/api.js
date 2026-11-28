@@ -9,7 +9,11 @@ const fetchData = async (endpoint, options = {}) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error("API error response:", data);
+
+      throw new Error(
+        data?.message || `HTTP error! status: ${response.status}`,
+      );
     }
 
     return data;
@@ -57,7 +61,7 @@ export const loginUser = async (username, password) => {
   });
 
   if (!data || !data?.token) {
-    throw new Error("Login failed: ", data?.message || "Unknown error");
+    throw new Error(data?.message || "Login failed");
   }
 
   return data;
@@ -65,22 +69,36 @@ export const loginUser = async (username, password) => {
 
 // Fetch current user data using the provided token
 export const getCurrentUser = async (token) => {
-    const data = await fetchData("/users/token", {
-        headers: {
-            "Authorization": `Bearer ${token}`,
-        },
-    });
+  const data = await fetchData("/users/token", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-    return data;
+  return data;
 };
 
 export const updateUser = async (token, userData) => {
-    return await fetchData("/users", {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(userData),
-    });
+  return await fetchData("/users", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(userData),
+  });
+};
+
+export const registerUser = async (username, email, password) => {
+  return await fetchData("/users", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      email: email,
+    }),
+  });
 };

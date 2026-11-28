@@ -17,7 +17,57 @@
     <link rel="stylesheet" href="css/style.css" />
     <script type ="module" src="js/main.js" defer></script>
   </head>
+
+  
   <body>
+    <dialog id="login-dialog" aria-labelledby="login-title">
+      <h2 id="login-title">Kirjaudu sisään</h2>
+
+      <form id="login-form">
+        <label for="login-username">Käyttäjätunnus</label>
+        <input
+          id="login-username"
+          name="username"
+          type="text"
+          autocomplete="username"
+          required
+        />
+
+        <label for="login-password">Salasana</label>
+        <input
+          id="login-password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+
+        <div id="register-fields" hidden>
+          <label for="register-email">Sähköposti</label>
+          <input
+            id="register-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+          />
+
+          <label for="register-confirm-password">Vahvista salasana</label>
+          <input
+            id="register-confirm-password"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <p id="login-error" role="alert"></p>
+
+        <button type="submit" id="login-form-submit-btn">Kirjaudu</button>
+        <button type="button" id="close-login">Peruuta</button>
+        <button type="button" id="toggle-register">Rekisteröidy</button>
+      </form>
+    </dialog>
+
     <header class="site-header">
       <div class="container header-content">
         <a class="brand" href="#" aria-label="OpiskelijaLounas, etusivu">
@@ -38,7 +88,7 @@
           <button class="login-button" type="button">
             Kirjaudu sisään <span aria-hidden="true">→</span>
           </button>
-          <details class="profile-menu">
+          <details class="profile-menu" hidden>
             <summary class="profile-trigger" aria-label="Avaa profiilivalikko">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="12" cy="8" r="3.5"></circle>
@@ -46,10 +96,10 @@
               </svg>
             </summary>
             <div class="profile-dropdown">
-              <strong>Anonymous</strong>
+              <strong id="profile-username">Anonymous</strong>
               <a href="#">Omat tiedot</a>
               <a href="#">Suosikit</a>
-              <a href="#">Kirjaudu ulos</a>
+              <a href="#" id="logout-button">Kirjaudu ulos</a>
             </div>
           </details>
         </div>
